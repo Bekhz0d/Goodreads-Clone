@@ -1,6 +1,6 @@
 from django import forms
 from users.models import CustomUser
-
+from django.core.mail import send_mail
 
 # class UserCreateForm(forms.Form):
 #     username = forms.CharField(max_length=50)
@@ -38,7 +38,7 @@ class UserCreateForm(forms.ModelForm):
         user = super().save(commit)
         user.set_password(self.cleaned_data["password"])
         user.save()
-        
+
         return user
 
 

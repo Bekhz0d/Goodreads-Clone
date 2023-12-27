@@ -1,8 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-
-from users.models import CustomUser
-from .models import Book
+from books.models import CustomUser, BookAuthor, Book, Author
 
 
 class BooksTestCase(TestCase):
@@ -55,6 +53,20 @@ class BooksTestCase(TestCase):
         self.assertNotContains(response, book1.title)
         self.assertNotContains(response, book2.title)
 
+    def test_book_author(self):
+        book = Book.objects.create(title="Book 1", description="Description 1", isbn="9876795685666")
+        author1 = Author.objects.create(first_name="John", last_name="Doe", email="dohn@gmail.com", bio="Good person")
+        author2 = Author.objects.create(first_name="Bekhzod", last_name="Nabijonov", email="Bek@gmail.com", bio="Good person")
+        author3 = Author.objects.create(first_name="Bekhzod3", last_name="Nabijonov3", email="Bek3@gmail.com", bio="Good person...")
+
+        BookAuthor.objects.create(book=book, author=author1)
+        BookAuthor.objects.create(book=book, author=author2)
+
+        response = self.client.get(reverse('books:detail_page', kwargs={'id': book.id}))
+        for book_author in book.bookauthor_set.all():
+            self.assertContains(response, book_author.author.full_name())
+        self.assertNotContains(response, author3.full_name)
+
 
 class BookReviewTestCase(TestCase):
     def test_add_review(self):
@@ -82,7 +94,6 @@ class BookReviewTestCase(TestCase):
         self.assertEqual(book_reviews[0].book, book)
         self.assertEqual(book_reviews[0].user, user)
         
-
     def test_review_stars_given(self):
         book = Book.objects.create(title="Book 1", description="Description 1", isbn="9876795685666")
         user = CustomUser.objects.create(
