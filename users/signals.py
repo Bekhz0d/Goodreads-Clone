@@ -13,3 +13,4 @@ def send_welcome_email(sender, instance, created, **kwargs):
         "bekhzodnabijonov@gmail.com",
         [instance.email]
     )
+        
