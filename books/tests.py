@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from books.models import CustomUser, BookAuthor, Book, Author
+from books.models import CustomUser, BookAuthor, Book, Author, BookReview
 
 
 class BooksTestCase(TestCase):
@@ -116,3 +116,59 @@ class BookReviewTestCase(TestCase):
         
         self.assertEqual(book_reviews.count(), 0)
 
+    def test_update_review(self):
+        book = Book.objects.create(title="Book 1", description="Description 1", isbn="9876795685666")
+        user = CustomUser.objects.create(
+            username="Bekhzod",
+            first_name="Bekhzod",
+            last_name="Nabijonov",
+            email="Bekhzod@gmail.com",
+            )
+        user.set_password("examplepassword")
+        user.save()
+
+        self.client.login(username="Bekhzod", password="examplepassword")
+
+        self.client.post(reverse('books:reviews', kwargs={'id': book.id}), data={
+            "stars_given": 3,
+            "comment": "Nice book"
+        })
+        review = book.bookreview_set.all()[0]
+
+        self.client.post(reverse('books:edit-review', kwargs={'book_id': book.id, 'review_id': review.id}), 
+            data={
+            "stars_given": 5,
+            "comment": "Nice book!"
+        })
+
+        # review = book.bookreview_set.all()[0]  # updated review
+        review.refresh_from_db()
+
+        self.assertEqual(review.stars_given, 5)
+        self.assertEqual(review.comment, 'Nice book!')
+
+    def test_delete_review(self):
+        book = Book.objects.create(title="Book 1", description="Description 1", isbn="9876795685666")
+        user = CustomUser.objects.create(
+            username="Bekhzod",
+            first_name="Bekhzod",
+            last_name="Nabijonov",
+            email="Bekhzod@gmail.com",
+            )
+        user.set_password("examplepassword")
+        user.save()
+
+        self.client.login(username="Bekhzod", password="examplepassword")
+
+        self.client.post(reverse('books:reviews', kwargs={'id': book.id}), data={
+            "stars_given": 3,
+            "comment": "Nice book"
+        })
+        review = book.bookreview_set.all()[0]
+
+        self.client.get(reverse('books:confirm-delete-review', kwargs={'book_id': book.id, 'review_id': review.id}),)
+        response = self.client.get(reverse('books:delete-review', kwargs={'book_id': book.id, 'review_id': review.id}),)
+
+        reviews = book.bookreview_set.all()       
+        self.assertEqual(reviews.count(), 0)
+        self.assertEqual(response.url, reverse('books:detail_page', kwargs={'id': book.id}))
