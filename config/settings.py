@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-LOGIN_URL = 'users:login'
 
 
 # Application definition
@@ -140,6 +139,7 @@ USE_TZ = True
 
 
 AUTH_USER_MODEL = 'users.CustomUser'
+LOGIN_URL = 'users:login'
 
 
 # Static files (CSS, JavaScript, Images)
